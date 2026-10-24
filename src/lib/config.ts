@@ -9,5 +9,5 @@
 //  put here. Security is enforced by Row Level Security in supabase/schema.sql.
 // ============================================================================
 
-export const SUPABASE_URL = 'https://YOUR-PROJECT.supabase.co';
-export const SUPABASE_ANON_KEY = 'YOUR-ANON-PUBLIC-KEY';
+export const SUPABASE_URL = 'https://nbwsqnjkbsfygdubmcvv.supabase.co';
+export const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5id3NxbmprYnNmeWdkdWJtY3Z2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI2Nzg1NTcsImV4cCI6MjEwODI1NDU1N30.n3jQ6mwS_9yvLa9UAA-d6KIWVQ9LYn_uV5KL5QG7Ff4';

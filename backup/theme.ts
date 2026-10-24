@@ -11,7 +11,11 @@ export const theme = {
     primaryDark: '#16a34a',
     danger: '#ef4444',
     accent: '#38bdf8',      // sky-400
+    good: '#22c55e',        // trend improving
+    bad: '#f59e0b',         // trend regressing (amber, not alarming red)
+    chartGrid: 'rgba(148,163,184,0.15)',
   },
   radius: 14,
+  radiusLg: 20,
   space: (n: number) => n * 4,
 };

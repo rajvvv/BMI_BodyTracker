@@ -8,6 +8,7 @@ type AuthState = {
   profile: Profile | null;
   loading: boolean;
   refreshProfile: () => Promise<void>;
+  updateProfile: (fields: Partial<Pick<Profile, 'full_name'>>) => Promise<void>;
   signOut: () => Promise<void>;
 };
 
@@ -46,6 +47,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     loading,
     refreshProfile: async () => {
       if (session) await loadProfile(session.user.id);
+    },
+    updateProfile: async (fields) => {
+      if (!session) return;
+      const { error } = await supabase.from('profiles').update(fields).eq('id', session.user.id);
+      if (error) throw error;
+      await loadProfile(session.user.id);
     },
     signOut: async () => {
       await supabase.auth.signOut();

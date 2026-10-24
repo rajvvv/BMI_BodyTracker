@@ -1,4 +1,4 @@
-# BodyTrack — Fitness Center Body-Composition Tracker
+   # BodyTrack — Fitness Center Body-Composition Tracker
 
 A mobile app (iOS + Android) for a fitness center. Instructors log in, add members,
 and record each machine weigh-in (weight, body-fat %, visceral fat, muscle mass,
@@ -49,15 +49,33 @@ npx expo start
 
 ---
 
-## What works now (MVP)
+## What works now
 
 - Instructor sign up / sign in (cloud, shared across all instructors)
-- Add / edit members (name, sex, DOB, height, phone, notes)
+- Home dashboard: member count + readings-this-month; **sort** by name / recent /
+  newest, with a **"last seen"** indicator per member
+- Add / edit members (name, sex, DOB via **date picker**, height, phone, notes) and
+  optional **goals** (target weight / target body-fat %)
 - Search members
-- Record a reading; **BMI auto-calculated**, BMR estimate shown
-- Member screen: latest reading tiles, **trend charts** (weight, BMI, fat %, muscle,
-  visceral fat), full history
-- Roles: admin vs. instructor (admins can delete)
+- Record a reading with a **date picker** (back-date past weigh-ins); **BMI
+  auto-calculated**, BMR estimate shown live; **edit or delete** any past reading
+  (tap it in History)
+- Home dashboard: members / active-30d / readings-per-month tiles + a **6-month
+  readings bar chart**
+- Member screen: latest reading tiles, **goal-progress bars**, and a **progress &
+  analytics** section — custom chart with gradient fill + average line, a
+  **1M/3M/6M/All period filter**, and trend stats (current, change with ▲▼,
+  per-week rate, lowest / highest / average) per metric
+- **Share a formatted PDF progress report** (brand header, goal bars, weight-trend
+  chart, full history table) → share sheet
+- Success **toasts**; roles: admin vs. instructor; **admins can delete members**
+- **Profile screen** (tap your avatar, top-right): edit your display name, see your
+  role, email, and how many members/readings you've logged, and sign out
+- Icons throughout, slide transitions between screens (no white flash)
+
+> **Database update:** these features added columns + a trigger. Re-run
+> [`supabase/schema.sql`](supabase/schema.sql) in the Supabase SQL editor once (it's
+> idempotent — the "MIGRATION 002" block at the bottom applies the changes).
 
 ## Metrics note
 
@@ -68,14 +86,32 @@ calculated from height/weight alone.
 
 ## Project layout
 
+Navigation uses **Expo Router** — every file in `src/app/` is a route. The screen
+UI lives in `src/screens/` (kept out of `src/app/` so only routes sit there).
+
 ```
-App.tsx                     app entry, navigation, auth gate
-src/lib/config.ts           <-- put your Supabase URL + anon key here
-src/lib/supabase.ts         Supabase client
-src/lib/calc.ts             BMI / BMR / age helpers
-src/lib/types.ts            shared TypeScript types
-src/context/AuthContext.tsx login session + profile
-src/screens/                Auth, Members, AddMember, MemberDetail, AddMeasurement
-src/components/ui.tsx        Button, Field, Card, StatTile
-supabase/schema.sql         run this once in Supabase
+src/app/_layout.tsx             providers + auth gate (Stack.Protected)
+src/app/sign-in.tsx             login route
+src/app/index.tsx               members list (home)
+src/app/member/new.tsx          add member
+src/app/member/[id]/index.tsx   member detail + charts
+src/app/member/[id]/edit.tsx    edit member
+src/app/member/[id]/measure.tsx record a reading
+src/lib/config.ts               <-- your Supabase URL + anon key
+src/lib/supabase.ts             Supabase client
+src/lib/calc.ts                 BMI / BMR / age / date helpers
+src/lib/report.ts               builds the PDF progress report (HTML)
+src/lib/types.ts                shared TypeScript types
+src/context/AuthContext.tsx     login session + profile
+src/screens/                    the screen components
+src/components/ui.tsx           Button, Field, Card, StatTile
+src/components/DateField.tsx    cross-platform date picker
+supabase/schema.sql             run this once in Supabase
 ```
+
+## Expo Go compatibility
+
+This project targets **Expo SDK 57**. Install the Expo Go app from the store (its
+latest release supports SDK 57) and scan the QR code from `npx expo start`. If you
+ever see "project is incompatible with this version of Expo Go", the project's SDK
+is newer than the installed Expo Go — that's what the SDK pin here prevents.

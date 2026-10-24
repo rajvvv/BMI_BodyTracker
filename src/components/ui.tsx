@@ -9,7 +9,10 @@ import {
   View,
   ViewStyle,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { theme } from '../theme';
+
+type IconName = keyof typeof Ionicons.glyphMap;
 
 export function Button({
   title,
@@ -17,32 +20,38 @@ export function Button({
   loading,
   variant = 'primary',
   disabled,
+  icon,
 }: {
   title: string;
   onPress: () => void;
   loading?: boolean;
   variant?: 'primary' | 'ghost' | 'danger';
   disabled?: boolean;
+  icon?: IconName;
 }) {
-  const bg =
-    variant === 'primary' ? theme.colors.primary : variant === 'danger' ? theme.colors.danger : 'transparent';
-  const border = variant === 'ghost' ? theme.colors.border : 'transparent';
-  const color = variant === 'ghost' ? theme.colors.text : '#04210f';
+  const danger = variant === 'danger';
+  const ghost = variant === 'ghost';
+  const bg = ghost ? 'transparent' : danger ? 'rgba(239,68,68,0.12)' : theme.colors.primary;
+  const border = ghost ? theme.colors.border : danger ? 'rgba(239,68,68,0.5)' : 'transparent';
+  const color = danger ? theme.colors.danger : ghost ? theme.colors.text : '#04210f';
   return (
     <Pressable
       onPress={onPress}
       disabled={disabled || loading}
       style={({ pressed }) => [
         styles.btn,
-        { backgroundColor: bg, borderColor: border, borderWidth: variant === 'ghost' ? 1 : 0 },
+        { backgroundColor: bg, borderColor: border, borderWidth: ghost || danger ? 1 : 0 },
         (disabled || loading) && { opacity: 0.5 },
-        pressed && { opacity: 0.8 },
+        pressed && { opacity: 0.85, transform: [{ scale: 0.985 }] },
       ]}
     >
       {loading ? (
         <ActivityIndicator color={color} />
       ) : (
-        <Text style={[styles.btnText, { color }]}>{title}</Text>
+        <View style={styles.btnRow}>
+          {icon ? <Ionicons name={icon} size={18} color={color} /> : null}
+          <Text style={[styles.btnText, { color }]}>{title}</Text>
+        </View>
       )}
     </Pressable>
   );
@@ -75,15 +84,20 @@ export function StatTile({
   value,
   unit,
   color,
+  icon,
 }: {
   label: string;
   value: string | number | null | undefined;
   unit?: string;
   color?: string;
+  icon?: IconName;
 }) {
   return (
     <View style={styles.tile}>
-      <Text style={styles.tileLabel}>{label}</Text>
+      <View style={styles.tileTop}>
+        <Text style={styles.tileLabel}>{label}</Text>
+        {icon ? <Ionicons name={icon} size={14} color={theme.colors.textDim} /> : null}
+      </View>
       <Text style={[styles.tileValue, color ? { color } : null]}>
         {value == null || value === '' ? '—' : value}
         {value != null && value !== '' && unit ? <Text style={styles.tileUnit}> {unit}</Text> : null}
@@ -100,6 +114,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: 20,
   },
+  btnRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   btnText: { fontSize: 16, fontWeight: '700' },
   label: { color: theme.colors.textDim, marginBottom: 6, fontSize: 13, fontWeight: '600' },
   hint: { color: theme.colors.textDim, marginTop: 4, fontSize: 12 },
@@ -127,7 +142,8 @@ const styles = StyleSheet.create({
     borderRadius: theme.radius,
     padding: theme.space(3),
   },
-  tileLabel: { color: theme.colors.textDim, fontSize: 12, marginBottom: 4 },
+  tileTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 },
+  tileLabel: { color: theme.colors.textDim, fontSize: 12 },
   tileValue: { color: theme.colors.text, fontSize: 20, fontWeight: '800' },
   tileUnit: { fontSize: 12, fontWeight: '600', color: theme.colors.textDim },
 });

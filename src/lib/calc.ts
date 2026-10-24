@@ -52,6 +52,62 @@ export function round1(n: number): number {
   return Math.round(n * 10) / 10;
 }
 
+export type Series = { v: number; at: string };
+
+export type SeriesStats = {
+  first: number;
+  last: number;
+  min: number;
+  max: number;
+  avg: number;
+  change: number;
+  perWeek: number | null;
+  count: number;
+};
+
+/** Summary analytics for a chronologically-ordered metric series. */
+export function seriesStats(points: Series[]): SeriesStats | null {
+  if (!points.length) return null;
+  const vals = points.map((p) => p.v);
+  const first = points[0].v;
+  const last = points[points.length - 1].v;
+  const change = round1(last - first);
+  const t0 = new Date(points[0].at).getTime();
+  const t1 = new Date(points[points.length - 1].at).getTime();
+  const weeks = (t1 - t0) / (7 * 86_400_000);
+  return {
+    first,
+    last,
+    min: Math.min(...vals),
+    max: Math.max(...vals),
+    avg: round1(vals.reduce((a, b) => a + b, 0) / vals.length),
+    change,
+    perWeek: weeks >= 0.5 ? round1(change / weeks) : null,
+    count: points.length,
+  };
+}
+
+/** True if an ISO timestamp falls within the last `months` (null = all time). */
+export function withinMonths(iso: string, months: number | null): boolean {
+  if (months == null) return true;
+  return new Date(iso).getTime() >= Date.now() - months * 30 * 86_400_000;
+}
+
+/** Date -> 'YYYY-MM-DD' (local), for date columns. */
+export function toYmd(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
+/** 'YYYY-MM-DD' (or any parseable date string) -> Date, or null. */
+export function parseDate(s: string | null | undefined): Date | null {
+  if (!s) return null;
+  const d = new Date(s);
+  return isNaN(d.getTime()) ? null : d;
+}
+
 /** Parse a user-typed number, returning null for blank/invalid. */
 export function num(v: string | null | undefined): number | null {
   if (v == null) return null;
@@ -59,4 +115,44 @@ export function num(v: string | null | undefined): number | null {
   if (t === '') return null;
   const n = Number(t);
   return isNaN(n) ? null : n;
+}
+
+export type GoalProgress = {
+  pct: number; // 0..100, clamped
+  remaining: number; // how far still to go (in the metric's unit), >= 0
+  reached: boolean;
+  startValue: number;
+  currentValue: number;
+  target: number;
+};
+
+/**
+ * Progress from a starting value toward a target, given the latest value.
+ * Works whether the goal is to go down (weight/fat loss) or up (muscle).
+ */
+export function goalProgress(
+  start: number | null,
+  current: number | null,
+  target: number | null,
+): GoalProgress | null {
+  if (start == null || current == null || target == null) return null;
+  const total = target - start;
+  const done = current - start;
+  // If the member started exactly at target, they only count as "reached"
+  // while still there — otherwise a later gain would still show 100%.
+  const pctRaw = total === 0 ? (current === target ? 100 : 0) : (done / total) * 100;
+  const pct = Math.max(0, Math.min(100, Math.round(pctRaw)));
+  const remaining = Math.max(0, Math.round(Math.abs(target - current) * 10) / 10);
+  const reached =
+    (total === 0 && current === target) ||   // started at target AND still there
+    (total < 0 && current <= target) ||       // goal was to decrease
+    (total > 0 && current >= target);         // goal was to increase
+  return {
+    pct: reached ? 100 : pct,
+    remaining: reached ? 0 : remaining,
+    reached,
+    startValue: start,
+    currentValue: current,
+    target,
+  };
 }

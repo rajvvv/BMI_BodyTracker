@@ -17,6 +17,9 @@ export type Member = {
   join_date: string;
   phone: string | null;
   notes: string | null;
+  target_weight_kg: number | null;
+  target_body_fat_pct: number | null;
+  last_measured_at: string | null;
   instructor_id: string | null;
   created_by: string | null;
   created_at: string;
